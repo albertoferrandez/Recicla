@@ -1,18 +1,17 @@
 
 export class Game extends Phaser.Scene {
-
     residus = ['abrir-caja', 'anteojos', 'biberon', 'bolsa', 'carta', 'cascara-de-huevo', 'hedor', 'comida-enlatada', 'botella-rota', 'cigarrillo', 'comida-enlatada', 'espina-de-pescado', 'lata-de-refresco', 'lata-de-refresco', 'leche', 'papel', 'periodico', 'vidrio-roto', 'yogur', 'tv-vintage', 'las-pilas', 'sofa', 'bateria-de-coche', 'comida-enlatada'];
-
-    cuboBlau = ['guiñoblau', 'riureblau', 'serioblau'];
-    cuboGris = ['guiñogris', 'riuregris', 'seriogris'];
-    cuboGroc = ['guiñogroc', 'riuregroc', 'seriogroc'];
-    cuboVerd = ['guinoverd', 'riureverd', 'serioverd'];
-    cuboEco = ['guinoecopark', 'riureecoparc', 'serioecoparc'];
-
+    cubos = {
+        blau: ['guiñoblau', 'riureblau', 'serioblau'],
+        gris: ['guiñogris', 'riuregris', 'seriogris'],
+        groc: ['guiñogroc', 'riuregroc', 'seriogroc'],
+        verds: ['guinoverd', 'riureverd', 'serioverd'],
+        ecoparc: ['guinoecopark', 'riureecoparc', 'serioecoparc']
+    };
     creats = 0;
 
     constructor() {
-        super({key: 'game'});
+        super({ key: 'game' });
     }
 
     init() {
@@ -24,28 +23,15 @@ export class Game extends Phaser.Scene {
 
         this.load.image('background', 'imatges/fondo.jpg');
 
-
-        for (var i = 0; i < this.residus.length; i++) {
-            this.load.image(this.residus[i], 'imatges/' + this.residus[i] + '.png');
+        for (let residuo of this.residus) {
+            this.load.image(residuo, 'imatges/' + residuo + '.png');
         }
 
-        for (var i = 0; i < this.cuboBlau.length; i++) {
-            this.load.image(this.cuboBlau[i], 'imatges/blau/' + this.cuboBlau[i] + '.png');
+        for (let color in this.cubos) {
+            for (let i = 0; i < this.cubos[color].length; i++) {
+                this.load.image(this.cubos[color][i], `imatges/${color}/${this.cubos[color][i]}.png`);
+            }
         }
-        for (var i = 0; i < this.cuboGris.length; i++) {
-            this.load.image(this.cuboGris[i], 'imatges/gris/' + this.cuboGris[i] + '.png');
-        }
-        for (var i = 0; i < this.cuboGroc.length; i++) {
-            this.load.image(this.cuboGroc[i], 'imatges/groc/' + this.cuboGroc[i] + '.png');
-        }
-        for (var i = 0; i < this.cuboVerd.length; i++) {
-            this.load.image(this.cuboVerd[i], 'imatges/verds/' + this.cuboVerd[i] + '.png');
-        }
-
-        for (var i = 0; i < this.cuboEco.length; i++) {
-            this.load.image(this.cuboEco[i], 'imatges/ecoparc/' + this.cuboEco[i] + '.png');
-        }
-
     }
 
     create() {
@@ -89,9 +75,9 @@ export class Game extends Phaser.Scene {
         if (this.basura.y > 800) {
 
             this.setTextureSerio();
-            
+
             this.restaVida();
-            
+
         }
 
         if (this.score === 15) {
@@ -143,7 +129,7 @@ export class Game extends Phaser.Scene {
         var numero = Math.floor(Math.random() * this.residus.length);
         var ncubo = this.BuscarCubo(this.residus[numero]);
 
-        this.basura = this.physics.add.image(Phaser.Math.Between(100, 1100), 0, this.residus[numero]).setInteractive({cursor: 'pointer'});
+        this.basura = this.physics.add.image(Phaser.Math.Between(100, 1100), 0, this.residus[numero]).setInteractive({ cursor: 'pointer' });
 
         if (ncubo === 'riuregroc') {
             console.log('entraama');
@@ -181,18 +167,17 @@ export class Game extends Phaser.Scene {
             gameObject.x = dragX;
             gameObject.y = dragY;
         });
-        
+
         this.basura.y === 570 ? this.input.off('drag', function (pointer, gameObject, dragX, dragY) {
 
             gameObject.x = dragX;
             gameObject.y = dragY;
         }) : null;
-        
+
 
     }
 
     tirarBasura() {
-
         this.score++;
         this.setTextureRiure();
         this.basura.destroy();
@@ -200,31 +185,30 @@ export class Game extends Phaser.Scene {
         this.crearBasura();
     }
 
-    BuscarCubo(residuo)
-    {
+    BuscarCubo(residuo) {
 
         var cubos = [
-            {residu: 'abrir-caja', cubo: 'riureblau'},
-            {residu: 'anteojos', cubo: 'riureverd'},
-            {residu: 'biberon', cubo: 'riuregris'},
-            {residu: 'bolsa', cubo: 'riuregroc'},
-            {residu: 'carta', cubo: 'riureblau'},
-            {residu: 'cascara-de-huevo', cubo: 'riuregris'},
-            {residu: 'hedor', cubo: 'riuregris'},
-            {residu: 'cigarrillo', cubo: 'riuregris'},
-            {residu: 'botella-rota', cubo: 'riureverd'},
-            {residu: 'espina-de-pescado', cubo: 'riuregris'},
-            {residu: 'lata-de-refresco', cubo: 'riuregroc'},
-            {residu: 'leche', cubo: 'riuregroc'},
-            {residu: 'papel', cubo: 'riureblau'},
-            {residu: 'periodico', cubo: 'riureblau'},
-            {residu: 'vidrio-roto', cubo: 'riureverd'},
-            {residu: 'yogur', cubo: 'riuregroc'},
-            {residu: 'tv-vintage', cubo: 'riureecoparc'},
-            {residu: 'sofa', cubo: 'riureecoparc'},
-            {residu: 'las-pilas', cubo: 'riureecoparc'},
-            {residu: 'bateria-de-coche', cubo: 'riureecoparc'},
-            {residu: 'comida-enlatada', cubo: 'riuregroc'}
+            { residu: 'abrir-caja', cubo: 'riureblau' },
+            { residu: 'anteojos', cubo: 'riureverd' },
+            { residu: 'biberon', cubo: 'riuregris' },
+            { residu: 'bolsa', cubo: 'riuregroc' },
+            { residu: 'carta', cubo: 'riureblau' },
+            { residu: 'cascara-de-huevo', cubo: 'riuregris' },
+            { residu: 'hedor', cubo: 'riuregris' },
+            { residu: 'cigarrillo', cubo: 'riuregris' },
+            { residu: 'botella-rota', cubo: 'riureverd' },
+            { residu: 'espina-de-pescado', cubo: 'riuregris' },
+            { residu: 'lata-de-refresco', cubo: 'riuregroc' },
+            { residu: 'leche', cubo: 'riuregroc' },
+            { residu: 'papel', cubo: 'riureblau' },
+            { residu: 'periodico', cubo: 'riureblau' },
+            { residu: 'vidrio-roto', cubo: 'riureverd' },
+            { residu: 'yogur', cubo: 'riuregroc' },
+            { residu: 'tv-vintage', cubo: 'riureecoparc' },
+            { residu: 'sofa', cubo: 'riureecoparc' },
+            { residu: 'las-pilas', cubo: 'riureecoparc' },
+            { residu: 'bateria-de-coche', cubo: 'riureecoparc' },
+            { residu: 'comida-enlatada', cubo: 'riuregroc' }
         ];
 
         for (var i = 0; i < cubos.length; i++) {
