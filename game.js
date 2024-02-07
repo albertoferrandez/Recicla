@@ -1,14 +1,42 @@
 
 export class Game extends Phaser.Scene {
-    residus = ['abrir-caja', 'anteojos', 'biberon', 'bolsa', 'carta', 'cascara-de-huevo', 'hedor', 'comida-enlatada', 'botella-rota', 'cigarrillo', 'comida-enlatada', 'espina-de-pescado', 'lata-de-refresco', 'lata-de-refresco', 'leche', 'papel', 'periodico', 'vidrio-roto', 'yogur', 'tv-vintage', 'las-pilas', 'sofa', 'bateria-de-coche', 'comida-enlatada'];
-    cubos = {
-        blau: ['guiñoblau', 'riureblau', 'serioblau'],
-        gris: ['guiñogris', 'riuregris', 'seriogris'],
-        groc: ['guiñogroc', 'riuregroc', 'seriogroc'],
-        verds: ['guinoverd', 'riureverd', 'serioverd'],
-        ecoparc: ['guinoecopark', 'riureecoparc', 'serioecoparc']
+    waste = [
+        'abrir-caja', 'anteojos', 'biberon', 'bolsa', 'carta',
+        'cascara-de-huevo', 'hedor', 'botella-rota', 'cigarrillo',
+        'comida-enlatada', 'espina-de-pescado', 'lata-de-refresco',
+        'leche', 'papel', 'periodico', 'vidrio-roto', 'yogur', 'tv-vintage', 
+        'las-pilas', 'sofa', 'bateria-de-coche'
+    ]
+
+    wasteToContainerMapping = {
+        "abrir-caja": "blau",
+        "anteojos": "verds",
+        "biberon": "gris",
+        "bolsa": "groc",
+        "cigarrillo": "gris",
+        "cascara-de-huevo": "verds",
+        "hedor": "gris",
+        "botella-rota": "verds",
+        "lata-de-refresco": "groc",
+        "comida-enlatada": "gris",
+        "leche": "groc",
+        "papel": "blau",
+        "periodico": "blau",
+        "vidrio-roto": "verds",
+        "yogur": "gris",
+        "tv-vintage": "ecoparc",
+        "las-pilas": "ecoparc",
+        "sofa": "ecoparc",
+        "bateria-de-coche": "ecoparc"
     };
-    creats = 0;
+
+    containers = {
+        blau: { images: ['guiñoblau', 'riureblau', 'serioblau'], position: { x: 100, y: 600 } },
+        gris: { images: ['guiñogris', 'riuregris', 'seriogris'], position: { x: 350, y: 600 } },
+        groc: { images: ['guiñogroc', 'riuregroc', 'seriogroc'], position: { x: 600, y: 600 } },
+        verds: { images: ['guinoverd', 'riureverd', 'serioverd'], position: { x: 850, y: 600 } },
+        ecoparc: { images: ['guinoecopark', 'riureecoparc', 'serioecoparc'], position: { x: 1100, y: 600 } }
+    }
 
     constructor() {
         super({ key: 'game' });
@@ -20,22 +48,22 @@ export class Game extends Phaser.Scene {
     }
 
     preload() {
-
         this.load.image('background', 'imatges/fondo.jpg');
 
-        for (let residuo of this.residus) {
+        for (let residuo of this.waste) {
             this.load.image(residuo, 'imatges/' + residuo + '.png');
         }
 
-        for (let color in this.cubos) {
-            for (let i = 0; i < this.cubos[color].length; i++) {
-                this.load.image(this.cubos[color][i], `imatges/${color}/${this.cubos[color][i]}.png`);
+        for (let color in this.containers) {
+            for (let i = 0; i < this.containers[color].images.length; i++) {
+                const imageName = this.containers[color].images[i];
+                const imagePath = `imatges/${color}/${imageName}.png`;
+                this.load.image(imageName, imagePath);
             }
         }
     }
 
     create() {
-
         this.add.image(600, 400, 'background');
 
         this.scoreText = this.add.text(16, 16, 'PUNTS : 0', {
@@ -52,20 +80,14 @@ export class Game extends Phaser.Scene {
 
         this.physics.world.setBoundsCollision(false, true, true, false);
 
-        this.azul = this.physics.add.image(100, 600, 'riureblau').setImmovable();
-        this.amarillo = this.physics.add.image(350, 600, 'riuregroc').setImmovable();
-        this.verde = this.physics.add.image(600, 600, 'riureverd').setImmovable();
-        this.gris = this.physics.add.image(850, 600, 'riuregris').setImmovable();
-        this.eco = this.physics.add.image(1100, 600, 'riureecoparc').setImmovable();
-
-        this.azul.body.allowGravity = false;
-        this.amarillo.body.allowGravity = false;
-        this.verde.body.allowGravity = false;
-        this.gris.body.allowGravity = false;
-        this.eco.body.allowGravity = false;
+        for (let containerKey in this.containers) {
+            const container = this.containers[containerKey];
+            const position = container.position;
+            this[containerKey] = this.physics.add.image(position.x, position.y, container.images[1]).setImmovable();
+            this[containerKey].body.allowGravity = false;
+        }
 
         this.crearBasura();
-
     }
 
     update() {
@@ -73,11 +95,8 @@ export class Game extends Phaser.Scene {
         this.basura.rotation += 0.01;
 
         if (this.basura.y > 800) {
-
             this.setTextureSerio();
-
             this.restaVida();
-
         }
 
         if (this.score === 15) {
@@ -86,19 +105,20 @@ export class Game extends Phaser.Scene {
     }
 
     setTextureSerio() {
-        this.azul.setTexture('serioblau');
-        this.amarillo.setTexture('seriogroc');
-        this.verde.setTexture('serioverd');
-        this.gris.setTexture('seriogris');
-        this.eco.setTexture('serioecoparc');
+        for (let containerKey in this.containers) {
+            const container = this.containers[containerKey];
+            const imageName = container.images[2];
+            this[containerKey].setTexture(imageName);
+        }
+
     }
 
     setTextureRiure() {
-        this.azul.setTexture('riureblau');
-        this.amarillo.setTexture('riuregroc');
-        this.verde.setTexture('riureverd');
-        this.gris.setTexture('riuregris');
-        this.eco.setTexture('riureecoparc');
+        for (let containerKey in this.containers) {
+            const container = this.containers[containerKey];
+            const imageName = container.images[1];
+            this[containerKey].setTexture(imageName);
+        }
     }
 
     endGame() {
@@ -110,116 +130,62 @@ export class Game extends Phaser.Scene {
     }
 
     restaVida() {
-
         this.lives--;
-
         this.livesText.setText(' INTENTOS : ' + this.lives);
 
         if (this.lives > 0) {
             this.crearBasura();
-
         } else {
             this.endGame();
         }
+    }
 
+    agregarColision(contenedor, basura) {
+        this.physics.add.collider(contenedor, basura, this.tirarBasura, null, this);
     }
 
     crearBasura() {
+        var numero = Math.floor(Math.random() * this.waste.length);
 
-        var numero = Math.floor(Math.random() * this.residus.length);
-        var ncubo = this.BuscarCubo(this.residus[numero]);
+        this.basura = this.physics.add.image(Phaser.Math.Between(100, 1100), 0, this.waste[numero]).setInteractive({ cursor: 'pointer' });
 
-        this.basura = this.physics.add.image(Phaser.Math.Between(100, 1100), 0, this.residus[numero]).setInteractive({ cursor: 'pointer' });
-
-        if (ncubo === 'riuregroc') {
-            console.log('entraama');
-            this.physics.add.collider(this.amarillo, this.basura, this.tirarBasura, null, this);
-        }
-
-        if (ncubo === 'riureverd') {
-            console.log('entraverde');
-            this.physics.add.collider(this.verde, this.basura, this.tirarBasura, null, this);
-        }
-
-        if (ncubo === 'riureblau') {
-            console.log('entraazul');
-            this.physics.add.collider(this.azul, this.basura, this.tirarBasura, null, this);
-        }
-
-        if (ncubo === 'riuregris') {
-            console.log('entrargris');
-            this.physics.add.collider(this.gris, this.basura, this.tirarBasura, null, this);
-        }
-
-        if (ncubo === 'riureecoparc') {
-            console.log('entrareco');
-            this.physics.add.collider(this.eco, this.basura, this.tirarBasura, null, this);
+        for (const [key, value] of Object.entries(this.containers)) {
+            this.agregarColision(this[key], this.basura);
         }
 
         this.input.setDraggable(this.basura);
-        var _this = this;
-        this.input.on('dragstart', function (pointer, gameObject) {
 
+        this.input.on('dragstart', function (pointer, gameObject) {
             this.children.bringToTop(gameObject);
         }, this);
-        this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
 
+        this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
             gameObject.x = dragX;
             gameObject.y = dragY;
         });
 
         this.basura.y === 570 ? this.input.off('drag', function (pointer, gameObject, dragX, dragY) {
-
             gameObject.x = dragX;
             gameObject.y = dragY;
         }) : null;
-
-
     }
 
     tirarBasura() {
         this.score++;
         this.setTextureRiure();
         this.basura.destroy();
-        this.scoreText.setText(' PUNTOS : ' + this.score);
+        this.scoreText.setText('PUNTOS : ' + this.score);
         this.crearBasura();
     }
 
-    BuscarCubo(residuo) {
+    buscarCubo(residuo) {
+        const contenedor = this.wasteToContainerMapping[residuo];
 
-        var cubos = [
-            { residu: 'abrir-caja', cubo: 'riureblau' },
-            { residu: 'anteojos', cubo: 'riureverd' },
-            { residu: 'biberon', cubo: 'riuregris' },
-            { residu: 'bolsa', cubo: 'riuregroc' },
-            { residu: 'carta', cubo: 'riureblau' },
-            { residu: 'cascara-de-huevo', cubo: 'riuregris' },
-            { residu: 'hedor', cubo: 'riuregris' },
-            { residu: 'cigarrillo', cubo: 'riuregris' },
-            { residu: 'botella-rota', cubo: 'riureverd' },
-            { residu: 'espina-de-pescado', cubo: 'riuregris' },
-            { residu: 'lata-de-refresco', cubo: 'riuregroc' },
-            { residu: 'leche', cubo: 'riuregroc' },
-            { residu: 'papel', cubo: 'riureblau' },
-            { residu: 'periodico', cubo: 'riureblau' },
-            { residu: 'vidrio-roto', cubo: 'riureverd' },
-            { residu: 'yogur', cubo: 'riuregroc' },
-            { residu: 'tv-vintage', cubo: 'riureecoparc' },
-            { residu: 'sofa', cubo: 'riureecoparc' },
-            { residu: 'las-pilas', cubo: 'riureecoparc' },
-            { residu: 'bateria-de-coche', cubo: 'riureecoparc' },
-            { residu: 'comida-enlatada', cubo: 'riuregroc' }
-        ];
-
-        for (var i = 0; i < cubos.length; i++) {
-
-            if (residuo === cubos[i].residu) {
-
-                var salida = cubos[i].cubo;
-                console.log(salida + residuo);
-            }
+        if (!contenedor) {
+            console.error(`No se encontró un contenedor para el residuo ${residuo}`);
+            return null;
         }
-        return salida;
-    }
 
+        return contenedor;
+    }
 }
